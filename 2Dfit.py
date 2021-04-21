@@ -95,7 +95,7 @@ def solve(semi_major, semi_minor, p):
 
     return [math.copysign(a * tx, p[0]), math.copysign(b * ty, p[1])]
 
-def gen2Dboundary():
+def gen2Dboundary(inPts = None):
     angle = 0
     id = 0
     CenterX = 10
@@ -108,19 +108,14 @@ def gen2Dboundary():
     while (angle < 2 * math.pi):
         point = [r1 * math.cos(angle), r2 * math.sin(angle)]
         if angle > 0 and angle <= math.pi/4:
-            point[1] = point[1] + math.sin(angle)*15
-        if angle > math.pi/4 and angle <= 3*math.pi/8:
-            point[1] = point[1] - (math.sin(angle)*15)
+            point[1] = point[1] - math.sin(angle)*5
+        if angle > math.pi/4 and angle <= math.pi/2:
+            point[1] = point[1] - (math.cos(angle)*5)
     #         point[0] = point[0] - math.cos(angle)*5
-        if angle > 3*math.pi/8 and angle <= math.pi/2:
-            point[1] = point[1] - (math.sin(angle)*25)
-        if angle > math.pi/2 and angle <= (5*math.pi/8):
-            point[1] = point[1] - (math.sin(angle)*25)
-        if angle > 5*math.pi/8 and angle <= (3*math.pi)/4:
-            point[1] = point[1] - (math.sin(angle)*15)
-    #         point[0] = point[0] - math.cos(angle)*5
-        if angle > (3*math.pi)/4 and angle <= math.pi:
-            point[1] = point[1] + math.sin(angle)*15
+        if angle > math.pi/2 and angle <= 3*math.pi/4:
+            point[1] = point[1] - (math.cos(angle)*5)
+        if angle > 3*math.pi/4 and angle <= (math.pi):
+            point[1] = point[1] + (math.sin(angle)*5)
         x1 = math.cos(rotation) * (point[0]) - math.sin(rotation) * (point[1])
         y1 = math.sin(rotation) * (point[0]) + math.cos(rotation) * (point[1])
         point[0] = x1 + CenterX
@@ -133,15 +128,17 @@ def gen2Dboundary():
     points.append(points[0])
 
     npPoints = np.array(points)
+    if inPts is not None:
+        inPts.append(inPts[0])
+        npPoints = np.array(inPts)
 
     tck, u = splprep(npPoints.T, u=None, s=0.0, per=1)
 
     u_new = np.linspace(u.min(), u.max(), 150)
     x_new, y_new = splev(u_new, tck, der=0)
 
-    # plt.plot(x_new, y_new, 'ro')
     # plt.plot(x_new, y_new, 'b')
-    # # plt.axis('scaled')
+    # plt.axis('scaled')
     # plt.show()
 
     # x and y are the x-values and y-values of the discrete points sampled along the test case
@@ -178,7 +175,7 @@ def curvatureFlow(orgX, orgY):
         diffeoY.append([y[i]])
 
     # iterating the curvature flow a max 100 times
-    for j in range(0,100):
+    for j in range(0,400):
         newPs = []
         for i in range(0, len(x)):
             point0 = (x[i], y[i])
@@ -192,7 +189,7 @@ def curvatureFlow(orgX, orgY):
             curv = 1/rad
             vect = (mid[0]-point0[0], mid[1]-point0[1])
             mag = math.sqrt(vect[0]**2 + vect[1]**2)
-            distance = (curv/mag)
+            distance = (curv/mag)*0.1
             disp = (vect[0]*distance, vect[1]*distance)
             
             # moving the current point by curvature value towards the center of the fitted circle
@@ -286,11 +283,10 @@ def curvatureFlow(orgX, orgY):
     x, y = npPoints.T
     tck, u = splprep(npPoints.T, u=None, s=0.0, per=1)
 
-    u_new = np.linspace(u.min(), u.max(), 40)
+    u_new = np.linspace(u.min(), u.max(), 100)
     x_new5, y_new5 = splev(u_new, tck, der=0)
 
-    # plt.plot(x, y, 'bo')
-    plt.plot(x_new5, y_new5, 'b')
+    # plt.plot(x_new5, y_new5, 'b')
 
     # newXs = x_new[0:-1]
     # newYs = y_new[0:-1]
@@ -328,11 +324,9 @@ def curvatureFlow(orgX, orgY):
     u_new = np.linspace(u.min(), u.max(), 150)
     xnewE, ynewE = splev(u_new, tck, der=0)
 
-    # plt.plot(x, y, 'bo')
-    # plt.plot(rotPtX, rotPtY, 'ro')
-    plt.plot(xnewE, ynewE, 'r')
-    plt.axis('scaled')
-    plt.show()
+    # plt.plot(xnewE, ynewE, 'r')
+    # plt.axis('scaled')
+    # plt.show()
 
     return diffeoX, diffeoY, radLen, finRotAng, [meanX, meanY], rotPtX, rotPtY
 
@@ -444,17 +438,16 @@ def ell_srep(diffeoX, diffeoY, radLen, finRotAng, means):
         x_vals2 = [sx[i], downBx]
         y_vals = [sy[i], b_pt[1]]
         y_vals2 = [sy[i], downBy]
-        plt.plot(x_vals, y_vals, 'k')
+        # plt.plot(x_vals, y_vals, 'k')
         if i != 0 and i != len(sx)-1:
-            plt.plot(x_vals2, y_vals2, 'k')
+            pass
+            # plt.plot(x_vals2, y_vals2, 'k')
     # print(tSy)
-    plt.plot(centX, centY, 'ro')
-    # plt.plot(centX, centY+minA, 'ro')
-    # plt.plot(centX+majA, centY, 'ro')
-    # plt.plot(xnewE, ynewE, 'r')
-    plt.plot(skeletonXs, skeletonYs,'r')
-    plt.axis('scaled')
-    plt.show()
+    # plt.plot(centX, centY, 'ro')
+
+    # plt.plot(skeletonXs, skeletonYs,'r')
+    # plt.axis('scaled')
+    # plt.show()
     return b_pointsU, b_pointsD, sPoints, interSkelX, interSkelY
 
 def inv_curv(b_pointsU, b_pointsD, sPoints, diffeoX, diffeoY, rotPtX, rotPtY, interSkelX, interSkelY):
@@ -534,18 +527,17 @@ def inv_curv(b_pointsU, b_pointsD, sPoints, diffeoX, diffeoY, rotPtX, rotPtY, in
             if j == len(diffeoX[0])-1:
                 xUp = [sk_pt[0], newUp[0]]
                 yUp = [sk_pt[1], newUp[1]]
-                plt.plot(xUp, yUp,'k')
+                # plt.plot(xUp, yUp,'k')
                 if i != 0 and i != len(sPoints)-1:
                     xDown = [sk_pt[0], newDown[0]]
                     yDown = [sk_pt[1], newDown[1]]
-                    plt.plot(xDown, yDown,'k')
+                    # plt.plot(xDown, yDown,'k')
             
     movingX.append(movingX[0])
     movingY.append(movingY[0])
-    # plt.plot(sXs, sYs,'r')
-    plt.plot(interSkelX, interSkelY,'r')
-    plt.plot(movingX, movingY, 'b')
-    plt.show()
+    # plt.plot(interSkelX, interSkelY,'r')
+    # plt.plot(movingX, movingY, 'b')
+    # plt.show()
     return sXs, sYs, invPtsU, invPtsD
 
 def refine(sXs, sYs, invPtsU, invPtsD, movingX, movingY):
@@ -611,16 +603,196 @@ def refine(sXs, sYs, invPtsU, invPtsD, movingX, movingY):
             boundPts.append([downx, downy])
             xDown = [sXs[i], downx]
             yDown = [sYs[i], downy]
-            plt.plot(xDown, yDown,'k')
+            # plt.plot(xDown, yDown,'k')
         
         
-        plt.plot(xUp, yUp,'k')
-    plt.plot(movingX, movingY, 'b')
-    plt.plot(sXs, sYs,'r') 
-    plt.show()
+    #     plt.plot(xUp, yUp,'k')
+    # plt.plot(movingX, movingY, 'b')
+    # plt.plot(sXs, sYs,'r')
+    # plt.axis('scaled')
+    # plt.show()
+    
+    angle = -1*math.pi/2
+    min_loss = 1
+    min_ang = 0
+    min_len = 0
+    def obj_func(angles, grad=None):
+        total_loss = 0
+        for i, angle in enumerate(angles):
+            ind = math.ceil((i)/2)
+            base_pt   = [sXs[ind], sYs[ind]]
+            bdry_pt   = [dirVecs[i][0]*opLen[i], dirVecs[i][1]*opLen[i]]
 
-x, y = gen2Dboundary()
-diffeoX, diffeoY, radLen, finRotAng, means, rotPtX, rotPtY = curvatureFlow(x,y)
-b_pointsU, b_pointsD, sPoints, interSkelX, interSkelY = ell_srep(diffeoX, diffeoY, radLen, finRotAng, means)
-sXs, sYs, invPtsU, invPtsD = inv_curv(b_pointsU, b_pointsD, sPoints, diffeoX, diffeoY, rotPtX, rotPtY, interSkelX, interSkelY)
-refine(sXs, sYs, invPtsU, invPtsD, [i[0] for i in diffeoX], [i[0] for i in diffeoY])
+            s = math.sin(angle)
+            c = math.cos(angle)
+
+            xnew = bdry_pt[0] * c - bdry_pt[1] * s
+            ynew = bdry_pt[0] * s + bdry_pt[1] * c
+
+            bdry_pt[0] = xnew + sXs[ind]
+            bdry_pt[1] = ynew + sYs[ind]
+            preFin = bdry_pt.copy()
+
+            vec = [bdry_pt[0]-base_pt[0],bdry_pt[1]-base_pt[1]]
+            unitV = vec / np.linalg.norm(vec)
+
+            point = Point(bdry_pt[0],bdry_pt[1])
+            while polyPlot.exterior.distance(point) > 0.00000001:
+
+                point = Point(bdry_pt[0],bdry_pt[1])
+                dispV = unitV * polyPlot.exterior.distance(point)
+                if polyPlot.distance(point) == 0:
+                    bdry_pt[0] = bdry_pt[0] + dispV[0]
+                    bdry_pt[1] = bdry_pt[1] + dispV[1]
+
+                else:
+                    bdry_pt[0] = bdry_pt[0] - dispV[0]
+                    bdry_pt[1] = bdry_pt[1] - dispV[1]
+
+            sLength = math.hypot(bdry_pt[0]-sXs[ind], bdry_pt[1]-sYs[ind])
+
+            shortDist = -1
+            ptInd = -1
+            for j in range(0, len(movingX)):
+                ptDist = math.hypot(bdry_pt[0]-movingX[j], bdry_pt[1]-movingY[j])
+                if ptDist < shortDist or shortDist == -1:
+                    shortDist = ptDist
+                    ptInd = j
+
+            ldist = math.hypot(bdry_pt[0]-movingX[ptInd-1], bdry_pt[1]-movingY[ptInd-1])
+            if ptInd == 0:
+                ldist = math.hypot(bdry_pt[0]-movingX[ptInd-2], bdry_pt[1]-movingY[ptInd-2])
+            rdist = math.hypot(bdry_pt[0]-movingX[(ptInd+1)%len(movingX)], bdry_pt[1]-movingY[(ptInd+1)%len(movingX)])
+            if ptInd == len(movingX)-1:
+                rdist = math.hypot(bdry_pt[0]-movingX[1], bdry_pt[1]-movingY[1])
+            left = False
+            if ldist < rdist:
+                left = True
+
+            vector_1 = [bdry_pt[0]-base_pt[0], bdry_pt[1]-base_pt[1]]
+            if left:
+                vector_2 = [movingX[ptInd] - movingX[ptInd-1], movingY[ptInd] - movingY[ptInd-1]]
+                if ptInd == 0:
+                    vector_2 = [movingX[ptInd] - movingX[ptInd-2], movingY[ptInd] - movingY[ptInd-2]]
+            else:
+                vector_2 = [movingX[(ptInd+1)%len(movingX)] - movingX[ptInd], movingY[(ptInd+1)%len(movingX)] - movingY[ptInd]]
+                if ptInd == len(movingX)-1:
+                    vector_2 = [movingX[1] - movingX[ptInd], movingY[1] - movingY[ptInd]]
+            unit_vector_1 = vector_1 / np.linalg.norm(vector_1)
+            unit_vector_2 = vector_2 / np.linalg.norm(vector_2)
+            dot_product = np.dot(unit_vector_1, unit_vector_2)
+            ang = np.arccos(dot_product)
+            total_loss = total_loss + (1 - abs(math.sin(ang)))
+            if angle < -1*math.pi/16 or angle > math.pi/16:
+                total_loss = total_loss + 100
+        return total_loss
+    
+    import nlopt
+    angles = np.zeros((len(sXs)-1)*2)
+    opt = nlopt.opt(nlopt.LN_NEWUOA, len(angles))
+    opt.set_min_objective(obj_func)
+    opt.set_maxeval(600)
+    finAng = opt.optimize(angles)
+
+    finBdryPts = []
+    for i, angle in enumerate(finAng):
+        ind = math.ceil((i)/2)
+        base_pt   = [sXs[ind], sYs[ind]]
+        bdry_pt   = [dirVecs[i][0]*opLen[i], dirVecs[i][1]*opLen[i]]
+
+        s = math.sin(angle)
+        c = math.cos(angle)
+
+        xnew = bdry_pt[0] * c - bdry_pt[1] * s
+        ynew = bdry_pt[0] * s + bdry_pt[1] * c
+
+        bdry_pt[0] = xnew + sXs[ind]
+        bdry_pt[1] = ynew + sYs[ind]
+
+        vec = [bdry_pt[0]-base_pt[0],bdry_pt[1]-base_pt[1]]
+        unitV = vec / np.linalg.norm(vec)
+
+        point = Point(bdry_pt[0],bdry_pt[1])
+        while polyPlot.exterior.distance(point) > 0.000000001:
+            point = Point(bdry_pt[0],bdry_pt[1])
+            dispV = unitV * polyPlot.exterior.distance(point)
+
+            if polyPlot.distance(point) == 0:
+                bdry_pt[0] = bdry_pt[0] + dispV[0]
+                bdry_pt[1] = bdry_pt[1] + dispV[1]
+            else:
+                bdry_pt[0] = bdry_pt[0] - dispV[0]
+                bdry_pt[1] = bdry_pt[1] - dispV[1]
+        spokeXs = [base_pt[0], bdry_pt[0]]
+        spokeYs = [base_pt[1], bdry_pt[1]]
+        finBdryPts.append(bdry_pt)
+        # plt.plot(spokeXs, spokeYs,'k')
+        
+        shortDist = -1
+        ptInd = -1
+        for j in range(0, len(movingX)):
+            ptDist = math.hypot(bdry_pt[0]-movingX[j], bdry_pt[1]-movingY[j])
+            if ptDist < shortDist or shortDist == -1:
+                shortDist = ptDist
+                ptInd = j
+
+        ldist = math.hypot(bdry_pt[0]-movingX[ptInd-1], bdry_pt[1]-movingY[ptInd-1])
+        if ptInd == 0:
+            ldist = math.hypot(bdry_pt[0]-movingX[ptInd-2], bdry_pt[1]-movingY[ptInd-2])
+        rdist = math.hypot(bdry_pt[0]-movingX[(ptInd+1)%len(movingX)], bdry_pt[1]-movingY[(ptInd+1)%len(movingX)])
+        if ptInd == len(movingX)-1:
+            rdist = math.hypot(bdry_pt[0]-movingX[1], bdry_pt[1]-movingY[1])
+        left = False
+        if ldist < rdist:
+            left = True
+
+        vector_1 = [bdry_pt[0]-base_pt[0], bdry_pt[1]-base_pt[1]]
+        if left:
+            vector_2 = [movingX[ptInd] - movingX[ptInd-1], movingY[ptInd] - movingY[ptInd-1]]
+            if ptInd == 0:
+                vector_2 = [movingX[ptInd] - movingX[ptInd-2], movingY[ptInd] - movingY[ptInd-2]]
+        else:
+            vector_2 = [movingX[(ptInd+1)%len(movingX)] - movingX[ptInd], movingY[(ptInd+1)%len(movingX)] - movingY[ptInd]]
+            if ptInd == len(movingX)-1:
+                vector_2 = [movingX[1] - movingX[ptInd], movingY[1] - movingY[ptInd]]
+
+        unit_vector_1 = vector_1 / np.linalg.norm(vector_1)
+        unit_vector_2 = vector_2 / np.linalg.norm(vector_2)
+        dot_product = np.dot(unit_vector_1, unit_vector_2)
+        ang = np.arccos(dot_product)
+        # print(ang)
+    # plt.plot(movingX, movingY, 'b')
+    # plotX = sXs[0:-1]
+    # plotX.append(sXs[-1]+3.5)
+    # plotX[0] = plotX[0]-3.5
+    # plotY = sYs
+    # plt.plot(sXs, sYs,'r')
+
+    base_pt1   = [sXs[0], sYs[0]]
+    bdry_pt1   = [sXs[0]+dirVecs[0][0]*opLen[0], sYs[0]+dirVecs[0][1]*opLen[0]]
+
+    base_pt2   = [sXs[-1], sYs[-1]]
+    bdry_pt2   = [sXs[-1]+dirVecs[-1][0]*opLen[-1], sYs[-1]+dirVecs[-1][1]*opLen[-1]]
+
+    spokeXs = [base_pt1[0], bdry_pt1[0]]
+    spokeYs = [base_pt1[1], bdry_pt1[1]]
+    # finBdryPts.append(bdry_pt1)
+    spokeXs = [base_pt2[0], bdry_pt2[0]]
+    spokeYs = [base_pt2[1], bdry_pt2[1]]
+    # plt.axis('scaled')
+    # plt.show()
+    return finBdryPts
+
+
+
+def run_sim(points = None):
+    if points is not None:
+        x, y = gen2Dboundary(points)
+    else:
+        x, y = gen2Dboundary()
+    diffeoX, diffeoY, radLen, finRotAng, means, rotPtX, rotPtY = curvatureFlow(x,y)
+    b_pointsU, b_pointsD, sPoints, interSkelX, interSkelY = ell_srep(diffeoX, diffeoY, radLen, finRotAng, means)
+    sXs, sYs, invPtsU, invPtsD = inv_curv(b_pointsU, b_pointsD, sPoints, diffeoX, diffeoY, rotPtX, rotPtY, interSkelX, interSkelY)
+    b_pts = refine(sXs, sYs, invPtsU, invPtsD, [i[0] for i in diffeoX], [i[0] for i in diffeoY])
+    return sXs, sYs, b_pts
+# run_sim()
